@@ -1,11 +1,12 @@
 package com.mycompany.asdi;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
 public class Principal {
-
+    
     static boolean existenErrores = false;
 
     public static void main(String[] args) throws IOException {
@@ -28,12 +29,15 @@ public class Principal {
     private static void ejecutar(String source){
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
-
-        /*for(Token token : tokens){
-            System.out.println(token);
-        }*/
-
-        Parser parser = new ASDI(tokens);
+        String ENTRADA="";
+        for(Token token : tokens){
+            //System.out.println(token);
+            ENTRADA =ENTRADA+(ObtenerPrimerPalabra.obtener(String.valueOf(token)));
+            ENTRADA =ENTRADA+" ";
+        }
+        ENTRADA=ENTRADA.substring(0, ENTRADA.length() - 1);
+        //System.out.println(ENTRADA);
+        Parser parser = new ASDI(tokens,ENTRADA);
         parser.parse();
     }
 
