@@ -1,4 +1,5 @@
 package com.mycompany.asdi;
+
 import java.util.List;
 
 public class ASDI implements Parser{
@@ -53,7 +54,7 @@ Pila miPila = new Pila();
         
         //Consumimos un elemento de la pila,
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "Dand"+ Y+ ".");
+        //System.out.println(palabra+ "Dand"+ Y+ ".");
         //DISTINCT x D, nos da: D-> distinct P 
         if((palabra.equals(String.valueOf(TipoToken.DISTINCT)))&&(Y.equals("D"))){
             // y agregamos su produccion corresponciente.
@@ -81,7 +82,7 @@ Pila miPila = new Pila();
     // P
     private void P(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "Pand"+ Y+ ".");
+        //System.out.println(palabra+ "Pand"+ Y+ ".");
         //ASTERISCO x P, nos da: P-> *
         if ((palabra.equals(String.valueOf(TipoToken.ASTERISCO)))&&(Y.equals("P"))) {
             miPila.operacion(1,"ASTERISCO");
@@ -102,7 +103,7 @@ Pila miPila = new Pila();
     // A
     private void A(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "Aand"+ Y+ ".");
+        //System.out.println(palabra+ "Aand"+ Y+ ".");
         //IDENTIFICADOR x A, nos da: A-> A2 A1
         if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("A"))) {
             miPila.operacion(1,"A1");
@@ -119,7 +120,7 @@ Pila miPila = new Pila();
     // A1
     private void A1(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "A2and"+ Y+ ".");
+        //System.out.println(palabra+ "A2and"+ Y+ ".");
         //FROM x A1, nos da: A1-> E
         if ((palabra.equals(String.valueOf(TipoToken.FROM)))&&(Y.equals("A1"))) {
             
@@ -148,7 +149,7 @@ Pila miPila = new Pila();
     // A2
     private void A2(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "A1and"+ Y+ ".");
+        //System.out.println(palabra+ "A1and"+ Y+ ".");
         //IDENTIFICADOR x A2, nos da: A2-> id A3
         if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("A2"))) {
             miPila.operacion(1,"A3");
@@ -165,7 +166,7 @@ Pila miPila = new Pila();
     // A3
     private void A3(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "A3and"+ Y+ ".");
+        //System.out.println(palabra+ "A3and"+ Y+ ".");
         //FROM x A3, nos da: A3-> E
         if ((palabra.equals(String.valueOf(TipoToken.FROM)))&&(Y.equals("A3"))) {
             
@@ -206,7 +207,7 @@ Pila miPila = new Pila();
     // T 
     private void T(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "Tand"+ Y+ ".");
+        //System.out.println(palabra+ "Tand"+ Y+ ".");
         //IDENTIFICADOR x T, nos da: T-> T2 T1
         if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("T"))) {
             miPila.operacion(1,"T1");
@@ -222,7 +223,7 @@ Pila miPila = new Pila();
     // T1
     private void T1(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "T1and"+ Y+ ".");
+        //System.out.println(palabra+ "T1and"+ Y+ ".");
         //COMA x T1, nos da: T1-> , T
         if ((palabra.equals(String.valueOf(TipoToken.COMA)))&&(Y.equals("T1"))) {
             miPila.operacion(1,"T");
@@ -251,7 +252,7 @@ Pila miPila = new Pila();
     // T2
     private void T2(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "T2and"+ Y+ ".");
+        //System.out.println(palabra+ "T2and"+ Y+ ".");
         //IDENTIFICADOR x T2, nos da: T2-> id T3
         if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("T2"))) {
             miPila.operacion(1,"T3");
@@ -268,7 +269,7 @@ Pila miPila = new Pila();
     // T3 
     private void T3(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        System.out.println(palabra+ "T3and"+ Y+ ".");
+        //System.out.println(palabra+ "T3and"+ Y+ ".");
         //IDENTIFICADOR x T3, nos da: T3-> id
         if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("T3"))) {
             miPila.operacion(1,"IDENTIFICADOR");
@@ -304,7 +305,7 @@ Pila miPila = new Pila();
         }
     }
     private void match(String palabra,String PILA){
-        System.out.println(palabra+ "=="+ PILA);
+        //System.out.println(palabra+ "=="+ PILA);
         if((palabra.equals("EOF"))&&(PILA.equals("EOF"))){
             miPila.operacion(0,""); // Quitamos elemento de tope pila (pop)
             this.LINEA=QuitarPrimerPalabra.quitar(LINEA);//Quitamos primer palabra de ENTRADA actual

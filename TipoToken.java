@@ -1,10 +1,5 @@
 package com.mycompany.asdi;
 
-/**
- *
- * @author fromerod1800
- */
-
 public enum TipoToken {
     IDENTIFICADOR,
 
