@@ -100,6 +100,65 @@ Pila miPila = new Pila();
             return;
         }
     }
+    
+    
+    public static boolean esHexadecimal(String valor) {
+        int a = 0;
+        if(valor.charAt(a) == '+' || valor.charAt(a) == '-') {
+            a++;    
+            int estadoActual = 2;
+        }    
+        if(valor.charAt(a) == '0' && valor.charAt(a + 1) == 'x') {
+            for (int i = a + 1; i < valor.length(); i++) {
+                char c = valor.charAt(i);
+                if(!Character.isDigit(c) && (c < 'A' || c > 'F'))
+                    return false;
+            }
+        }else
+            return false;
+        return true;
+    }
+    // Comprobamos si el valor de la variable corresponde a un Real
+    public static boolean esReal(String valor) {
+        int a = 0;
+        if(valor.charAt(a) == '+' || valor.charAt(a) == '-') {
+            a++;    
+            int estadoActual = 2;
+        }
+        if(valor.indexOf('.') != -1 && valor.indexOf('.') == valor.lastIndexOf('.')) {
+            for (int i = a; i < valor.length(); i++) {
+                char c = valor.charAt(i);
+                if(!Character.isDigit(c) && c != '.')
+                    return false;
+            }
+         }else{
+             return false;
+        }
+           
+        return true;
+    }
+    // Comprobamos si el valor de la variable corresponde a un Real con Exponente
+    public static boolean esRealconExponente(String valor) {
+        int a = 0, signo = 0;
+        if(valor.charAt(a) == '+' || valor.charAt(a) == '-')
+            a++;
+        if(valor.indexOf('.') != -1 && valor.indexOf('.') == valor.lastIndexOf('.') && valor.indexOf('E') != -1 && valor.indexOf('E') == valor.lastIndexOf('E')) {
+            for (int i = a; i < valor.length(); i++) {
+                char c = valor.charAt(i);
+                if (c == '+' || c == '-') {
+                    signo++;
+                    int estadoActual = 4;
+                }
+                else if(!Character.isDigit(c) && c != '.' && signo == 1)
+                    return false;
+            }
+         }else{
+            return false;
+        }
+            
+        return true;
+    }
+    
     // A
     private void A(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
@@ -249,6 +308,8 @@ Pila miPila = new Pila();
         }
     }
 
+    
+    
     // T2
     private void T2(String palabra){
         String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
