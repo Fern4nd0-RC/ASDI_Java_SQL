@@ -1,426 +1,165 @@
-package com.mycompany.asdi;
-
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 
 public class ASDI implements Parser{
-Pila miPila = new Pila();
+    private int i = 0;
     private boolean hayErrores = false;
-    private String LINEA; //Aqui se guarda entrada
+    private Token preanalisis;
+    private final List<Token> tokens;
+    Deque<Object> pila = new ArrayDeque<>();
+    int longitud;
 
-    public ASDI(List<Token> tokens,String linea){
-        this.LINEA=linea;
+    public ASDI(List<Token> tokens){
+        this.tokens = tokens;
+        preanalisis = this.tokens.get(i);
+        longitud = this.tokens.size();
+        pila.push(TipoToken.EOF);
+        pila.push("Q");
     }
 
     @Override
     public boolean parse() {
-        String primeraPalabra = ObtenerPrimerPalabra.obtener(LINEA);
-        Q(primeraPalabra);
-        //System.out.println(primeraPalabra+ "\n");
-        //preanalisis = this.tokens.get(i);
-        // = this.tokens.primeraPalabra;
-        if(!hayErrores){
-            System.out.println("Consulta correcta");
-            return  true;
-        }else {
-            System.out.println("Se encontraron errores");
-        }
-        return false;
-    }
-    // Q
-    private void Q(String palabra){
-        //Consumimos un elemento de la pila,
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "and"+ Y+ ".");
-        //System.out.println(String.valueOf(TipoToken.SELECT)+ ".");
-        //SELECT x Q, nos da: Q -> select D from T
-        if((palabra.equals(String.valueOf(TipoToken.SELECT)))&&(Y.equals("Q"))){
-            //System.out.println("check");
-            // y agregamos su produccion corresponciente.
-            miPila.operacion(1,"T"); // Add un elemento (push)
-            miPila.operacion(1,"FROM"); // Add un elemento (push)
-            miPila.operacion(1,"D"); // Add un elemento (push)
-            miPila.operacion(1,"SELECT"); // Add un elemento (push)
-            
-            //Sabemos que palabra de entrada es SELECT y lo ultimo de pila es SELECT, match
-            match(palabra, "SELECT");
-        }else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    // D 
-    private void D(String palabra){
+        HashMap<String, HashMap<TipoToken, List<Object>>> TablaAS = new HashMap<>();
+        List<Object> listaQSelect = new ArrayList<>();
+        listaQSelect.add("T");
+        listaQSelect.add(TipoToken.FROM);
+        listaQSelect.add("D");
+        listaQSelect.add(TipoToken.SELECT);
+        TablaAS.put("Q", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.SELECT, listaQSelect);
+        }});
         
-        //Consumimos un elemento de la pila,
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "Dand"+ Y+ ".");
-        //DISTINCT x D, nos da: D-> distinct P 
-        if((palabra.equals(String.valueOf(TipoToken.DISTINCT)))&&(Y.equals("D"))){
-            // y agregamos su produccion corresponciente.
-            miPila.operacion(1,"P"); 
-            miPila.operacion(1,"DISTINCT"); 
-            match(palabra, "DISTINCT");
-        }
-        //ASTERISCO x D, nos da: D-> P
-        else if ((palabra.equals(String.valueOf(TipoToken.ASTERISCO)))&&(Y.equals("D"))) {
-            miPila.operacion(1,"P");
-            P(palabra);
-        }
-        //IDENTIFICADOR x D, nos da: D-> P
-        else if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("D"))) {
-            miPila.operacion(1,"P");
-            P(palabra);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-
-    // P
-    private void P(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "Pand"+ Y+ ".");
-        //ASTERISCO x P, nos da: P-> *
-        if ((palabra.equals(String.valueOf(TipoToken.ASTERISCO)))&&(Y.equals("P"))) {
-            miPila.operacion(1,"ASTERISCO");
-            //Sabemos que palabra de entrada es ASTERISCO y lo ultimo de pila es ASTERISCO, match
-            match(palabra,"ASTERISCO");
-        }
-        //IDENTIFICADOR x P, nos da: P-> A
-        else if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("P"))) {
-            miPila.operacion(1,"A");
-            A(palabra);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    
-    
-    public static boolean esHexadecimal(String valor) {
-        int a = 0;
-        if(valor.charAt(a) == '+' || valor.charAt(a) == '-') {
-            a++;    
-            int estadoActual = 2;
-        }    
-        if(valor.charAt(a) == '0' && valor.charAt(a + 1) == 'x') {
-            for (int i = a + 1; i < valor.length(); i++) {
-                char c = valor.charAt(i);
-                if(!Character.isDigit(c) && (c < 'A' || c > 'F'))
-                    return false;
-            }
-        }else
-            return false;
-        return true;
-    }
-    // Comprobamos si el valor de la variable corresponde a un Real
-    public static boolean esReal(String valor) {
-        int a = 0;
-        if(valor.charAt(a) == '+' || valor.charAt(a) == '-') {
-            a++;    
-            int estadoActual = 2;
-        }
-        if(valor.indexOf('.') != -1 && valor.indexOf('.') == valor.lastIndexOf('.')) {
-            for (int i = a; i < valor.length(); i++) {
-                char c = valor.charAt(i);
-                if(!Character.isDigit(c) && c != '.')
-                    return false;
-            }
-         }else{
-             return false;
-        }
-           
-        return true;
-    }
-    // Comprobamos si el valor de la variable corresponde a un Real con Exponente
-    public static boolean esRealconExponente(String valor) {
-        int a = 0, signo = 0;
-        if(valor.charAt(a) == '+' || valor.charAt(a) == '-')
-            a++;
-        if(valor.indexOf('.') != -1 && valor.indexOf('.') == valor.lastIndexOf('.') && valor.indexOf('E') != -1 && valor.indexOf('E') == valor.lastIndexOf('E')) {
-            for (int i = a; i < valor.length(); i++) {
-                char c = valor.charAt(i);
-                if (c == '+' || c == '-') {
-                    signo++;
-                    int estadoActual = 4;
-                }
-                else if(!Character.isDigit(c) && c != '.' && signo == 1)
-                    return false;
-            }
-         }else{
-            return false;
-        }
-            
-        return true;
-    }
-    
-    // A
-    private void A(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "Aand"+ Y+ ".");
-        //IDENTIFICADOR x A, nos da: A-> A2 A1
-        if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("A"))) {
-            miPila.operacion(1,"A1");
-            miPila.operacion(1,"A2");
-            A2(palabra);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
+        List<Object> listaD = new ArrayList<>();
+        listaD.add("P");
+        List<Object> listaDistinct = new ArrayList<>();
+        listaDistinct.add("P");
+        listaDistinct.add(TipoToken.DISTINCT);
+        TablaAS.put("D", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.DISTINCT, listaDistinct);
+            put(TipoToken.IDENTIFICADOR, listaD);
+            put(TipoToken.ASTERISCO, listaD);
+        }});
+      
+        List<Object> listaPId = new ArrayList<>();
+        listaPId.add("A");
+        List<Object> listaPAsterisco = new ArrayList<>();
+        listaPAsterisco.add(TipoToken.ASTERISCO);
+        TablaAS.put("P", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.IDENTIFICADOR, listaPId);
+            put(TipoToken.ASTERISCO, listaPAsterisco);
+        }});
         
-    // A1
-    private void A1(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "A2and"+ Y+ ".");
-        //FROM x A1, nos da: A1-> E
-        if ((palabra.equals(String.valueOf(TipoToken.FROM)))&&(Y.equals("A1"))) {
+        List<Object> listaA = new ArrayList<>();
+        listaA.add("A1");
+        listaA.add("A2");
+        TablaAS.put("A", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.IDENTIFICADOR, listaA);
+        }});
+        
+        List<Object> listaEpsilon = new ArrayList<>();
+        List<Object> listaA1 = new ArrayList<>();
+        listaA1.add("A");
+        listaA1.add(TipoToken.COMA);
+        TablaAS.put("A1", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.COMA, listaA1);
+            put(TipoToken.FROM, listaEpsilon);
+        }});
+        
+        List<Object> listaA2 = new ArrayList<>();
+        listaA2.add("A3");
+        listaA2.add(TipoToken.IDENTIFICADOR);
+        TablaAS.put("A2", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.IDENTIFICADOR, listaA2);
+        }});
+        List<Object> listaA3 = new ArrayList<>();
+        listaA3.add(TipoToken.IDENTIFICADOR);
+        listaA3.add(TipoToken.PUNTO);
+        TablaAS.put("A3", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.FROM, listaEpsilon);
+            put(TipoToken.COMA, listaEpsilon);
+            put(TipoToken.PUNTO, listaA3);
+        }});
+        List<Object> listaT = new ArrayList<>();
+        listaT.add("T1");
+        listaT.add("T2");
+        TablaAS.put("T", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.IDENTIFICADOR, listaT);
+        }});
+        List<Object> listaT1 = new ArrayList<>();
+        listaT1.add("T");
+        listaT1.add(TipoToken.COMA);
+        TablaAS.put("T1", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.COMA, listaT1);
+            put(TipoToken.EOF, listaEpsilon);
+        }});
+        List<Object> listaT2 = new ArrayList<>();
+        listaT2.add("T3");
+        listaT2.add(TipoToken.IDENTIFICADOR);
+        TablaAS.put("T2", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.IDENTIFICADOR, listaT2);
+        }});
+        List<Object> listaT3 = new ArrayList<>();
+        listaT3.add(TipoToken.IDENTIFICADOR);
+        TablaAS.put("T3", new HashMap<TipoToken,List<Object>>(){{
+            put(TipoToken.IDENTIFICADOR, listaT3);
+            put(TipoToken.COMA, listaEpsilon);
+            put(TipoToken.EOF, listaEpsilon);
+        }});
+        String fl = pila.peek().toString();
+        TipoToken col = preanalisis.tipo;
+        List<Object> celda;
+        int j;
+        
+        while(true){
+            //System.out.println("Pila: " + pila);
+            //System.out.println("Preanalisis: " + preanalisis);
             
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            Y=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,Y); //metemos 
-
-            //AQUI mandamos a match porque no sabemos que hay debajo de pila actual, y a donde
-            //nos llevara... match lo resolvera.
-            match(palabra,Y);
-        }
-        //COMA x A1, nos da: P-> , A
-        else if ((palabra.equals(String.valueOf(TipoToken.COMA)))&&(Y.equals("A1"))) {
-            miPila.operacion(1,"A");
-            miPila.operacion(1,"COMA");
-            //Sabemos que palabra de entrada es COMA y lo ultimo de pila es COMA, match
-            match(palabra,"COMA");
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    // A2
-    private void A2(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "A1and"+ Y+ ".");
-        //IDENTIFICADOR x A2, nos da: A2-> id A3
-        if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("A2"))) {
-            miPila.operacion(1,"A3");
-            miPila.operacion(1,"IDENTIFICADOR");
-            //Sabemos que palabra de entrada es IDENTIFICADOR y lo ultimo de pila es IDENTIFICADOR, match
-            match(palabra,"IDENTIFICADOR");
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    // A3
-    private void A3(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "A3and"+ Y+ ".");
-        //FROM x A3, nos da: A3-> E
-        if ((palabra.equals(String.valueOf(TipoToken.FROM)))&&(Y.equals("A3"))) {
             
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            Y=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,Y); //metemos 
-
-            //AQUI mandamos a match porque no sabemos que hay debajo de pila actual, y a donde
-            //nos llevara... match lo resolvera.
-            match(palabra,Y);
-        } 
-        //COMA x A3, nos da: A3-> E
-        else if ((palabra.equals(String.valueOf(TipoToken.COMA)))&&(Y.equals("A3"))) {
-            
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            Y=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,Y); //metemos 
-
-            //AQUI mandamos a match porque no sabemos que hay debajo de pila actual, y a donde
-            //nos llevara... match lo resolvera.
-            match(palabra,Y);
-        }
-        //PUNTO x A3, nos da: A3-> . id
-        else if ((palabra.equals(String.valueOf(TipoToken.PUNTO)))&&(Y.equals("A3"))) {
-            miPila.operacion(1,"IDENTIFICADOR");
-            miPila.operacion(1,"PUNTO");
-            //Sabemos que palabra de entrada es PUNTO y lo ultimo de pila es PUNTO, match
-            match(palabra,"PUNTO");
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    // T 
-    private void T(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "Tand"+ Y+ ".");
-        //IDENTIFICADOR x T, nos da: T-> T2 T1
-        if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("T"))) {
-            miPila.operacion(1,"T1");
-            miPila.operacion(1,"T2");
-            T2(palabra);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    } 
-    // T1
-    private void T1(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "T1and"+ Y+ ".");
-        //COMA x T1, nos da: T1-> , T
-        if ((palabra.equals(String.valueOf(TipoToken.COMA)))&&(Y.equals("T1"))) {
-            miPila.operacion(1,"T");
-            miPila.operacion(1,"COMA");
-            //Sabemos que palabra de entrada es PUNTO y lo ultimo de pila es PUNTO, match
-            match(palabra,"COMA");
-        }
-        //EOF x T1, nos da: T1-> E
-        else if((palabra.equals(String.valueOf(TipoToken.EOF)))&&(Y.equals("T1"))){
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            Y=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,Y); //metemos 
-
-            //AQUI mandamos a match porque no sabemos que hay debajo de pila actual, y a donde
-            //nos llevara... match lo resolvera.
-            match(palabra,Y);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-
-    
-    
-    // T2
-    private void T2(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "T2and"+ Y+ ".");
-        //IDENTIFICADOR x T2, nos da: T2-> id T3
-        if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("T2"))) {
-            miPila.operacion(1,"T3");
-            miPila.operacion(1,"IDENTIFICADOR");
-            //Sabemos que palabra de entrada es PUNTO y lo ultimo de pila es PUNTO, match
-            match(palabra,"IDENTIFICADOR");
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    // T3 
-    private void T3(String palabra){
-        String Y=miPila.operacion(2,""); // Quitar un elemento (pop) y recibirlo
-        //System.out.println(palabra+ "T3and"+ Y+ ".");
-        //IDENTIFICADOR x T3, nos da: T3-> id
-        if ((palabra.equals(String.valueOf(TipoToken.IDENTIFICADOR)))&&(Y.equals("T3"))) {
-            miPila.operacion(1,"IDENTIFICADOR");
-            //Sabemos que palabra de entrada es PUNTO y lo ultimo de pila es PUNTO, match
-            match(palabra,"IDENTIFICADOR");
-        }
-        //COMA x T3, nos da: T3-> E
-        else if((palabra.equals(String.valueOf(TipoToken.COMA)))&&(Y.equals("T3"))){
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            Y=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,Y); //metemos 
-
-            //AQUI mandamos a match porque no sabemos que hay debajo de pila actual, y a donde
-            //nos llevara... match lo resolvera.
-            match(palabra,Y);
-        }
-        //EOF x T3, nos da: T3-> E
-        else if((palabra.equals(String.valueOf(TipoToken.EOF)))&&(Y.equals("T3"))){
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            Y=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,Y); //metemos 
-
-            //AQUI mandamos a match porque no sabemos que hay debajo de pila actual, y a donde
-            //nos llevara... match lo resolvera.
-            match(palabra,Y);
-        }
-        else{
-            hayErrores = true;
-            System.out.println("Error sintactico.");
-            return;
-        }
-    }
-    private void match(String palabra,String PILA){
-        //System.out.println(palabra+ "=="+ PILA);
-        if((palabra.equals("EOF"))&&(PILA.equals("EOF"))){
-            miPila.operacion(0,""); // Quitamos elemento de tope pila (pop)
-            this.LINEA=QuitarPrimerPalabra.quitar(LINEA);//Quitamos primer palabra de ENTRADA actual
-
-            //La pila y la entrada quedan vacias. Validacion-->
-
-        }
-        else if(palabra.equals(PILA)){
-            //Sabemos que lo primero de la Entrada y de la Pila son iguales. Se eliminan
-            this.LINEA=QuitarPrimerPalabra.quitar(LINEA);//Quitamos primer palabra de ENTRADA actual
-            miPila.operacion(0,""); // Quitamos elemento de tope pila (pop)
-            palabra = ObtenerPrimerPalabra.obtener(LINEA);
-            // Sacamos el nuevo Top de pila, lo guardamos y volvemos
-            //a meter para que no se pierda...
-            PILA=miPila.operacion(2,""); //SACAMOS y actualizamos
-            miPila.operacion(1,PILA); //metemos 
-
-            match(palabra, PILA);
-        }
-        else{
-            if (PILA.equals("Q")){
-                Q(palabra);
-            }
-            else if(PILA.equals("D")){
-                D(palabra);
-            }
-            else if(PILA.equals("P")){
-                P(palabra);
-            }
-            else if(PILA.equals("A1")){
-                A1(palabra);
-            }
-            else if(PILA.equals("A2")){
-                A2(palabra);
-            }
-            else if(PILA.equals("A3")){
-                A3(palabra);
-            }
-            else if(PILA.equals("T")){
-                T(palabra);
-            }
-            else if(PILA.equals("T1")){
-                T1(palabra);
-            }
-            else if(PILA.equals("T2")){
-                T2(palabra);
-            }
-            else if(PILA.equals("T3")){
-                T3(palabra);
-            }else{
+            if(pila.peek() == TipoToken.EOF)  break;
+            celda = TablaAS.get(fl).get(col);
+            if(celda == null){
                 hayErrores = true;
-                System.out.println("Se esperaba un estado.");
+                break;
+            } 
+            else if(celda.size() == 0){
+                pila.pop();
+                fl = pila.peek().toString();
+            } 
+            else if(celda.get(celda.size()-1) instanceof TipoToken){
+                pila.pop();
+                for(j = 0; j < celda.size(); j++){
+                    pila.push(celda.get(j));
+                }
+                pila.pop();
+                i++;
+                preanalisis = tokens.get(i);
+                col = tokens.get(i).tipo;
+                fl = pila.peek().toString();
             }
+            else if(celda.get(celda.size()-1) instanceof String){
+                pila.pop();
+                for(j = 0; j < celda.size(); j++)
+                    pila.push(celda.get(j));
+                fl = pila.peek().toString();
+            }
+            if(pila.peek() instanceof TipoToken){
+                    if(pila.peek() == TipoToken.EOF) break;
+                    pila.pop();
+                    i++;
+                    preanalisis = tokens.get(i);
+                    fl = pila.peek().toString();
+                    col = tokens.get(i).tipo;
+            }
+            /*if (hayErrores) {
+                System.out.println("Error detectado");
+                break;
+            }*/
         }
-
+        if(!hayErrores) System.out.println("El lexema es correcto");
+        else Principal.error("El lexema es incorrecto");
+        return hayErrores;
     }
 }

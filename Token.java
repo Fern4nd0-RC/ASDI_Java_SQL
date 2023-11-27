@@ -1,5 +1,3 @@
-package com.mycompany.asdi;
-
 public class Token {
 
     final TipoToken tipo;

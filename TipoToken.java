@@ -1,5 +1,3 @@
-package com.mycompany.asdi;
-
 public enum TipoToken {
     IDENTIFICADOR,
 
